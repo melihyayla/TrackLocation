@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private boolean mAlreadyStartedService = false;
-    private TextView mMsgView;
+    private TextView mMsgView,dateText;
     private ListView listView;
     DatabaseHelper databaseHelper;
     static boolean flag=true;
@@ -67,13 +67,17 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> latitudeArray;
     ArrayList<String> longitudeArray;
     String finalStr;
+    Button showDates;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mMsgView = findViewById(R.id.loading_text);
         listView = findViewById(R.id.listView);
+        showDates = findViewById(R.id.show_dates);
         databaseHelper = new DatabaseHelper(getApplicationContext());
+        dateText = findViewById(R.id.date_text);
 
         arrayList = new ArrayList<>();
         arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, arrayList);
@@ -82,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
         listView.setAdapter(arrayAdapter);
 
-        mMsgView.setOnClickListener(new View.OnClickListener() {
+        showDates.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 createDialogBox();
@@ -97,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
 
                 intent.putExtra("Latitude", latitudeArray.get(position));
                 intent.putExtra("Longitude", longitudeArray.get(position));
-
+                intent.putExtra("Address",arrayList.get(position));
                 startActivity(intent);
 
             }
@@ -114,78 +118,20 @@ public class MainActivity extends AppCompatActivity {
             Log.i("IntentStr", intentStr);
         }
 
-        finalStr = intentStr;
-
-        /*ArrayList<HashMap<String,String>> locationList = databaseHelper.activeLocation();
-        ArrayList<String> locations = new ArrayList<>();
-        ArrayList<String> details = new ArrayList<>();
-
-        intentStr=null;
-
-        if(intentStr==null){
-            Log.i("IntentStr", " NULL ");
-
-            SimpleDateFormat timeSdf = new SimpleDateFormat("dd-MM-yyyy");
-
-            intentStr = timeSdf.format(new Date());
-
-            Log.i("IntentStr", intentStr);
-        }
-
-        final String finalStr = intentStr;
-
-        for (int i = 0; i < locationList.size(); i++) {
-            locations.add(String.valueOf(locationList.get(i).get("id")));
-        }
-
-        ArrayList<String> mLatitudeArray = new ArrayList<>();
-        ArrayList<String> mLongitudeArray = new ArrayList<>();
-
-        if(intentStr!=null){
-
-        for (int j = 0; j < locationList.size(); j++) {
-            if(databaseHelper.locationDetail(Integer.parseInt(locations.get(j))).get("location_date").equals(intentStr)){
-
-                String listString = databaseHelper.locationDetail(Integer.parseInt(locations.get(j))).get("location_title");
-                mLatitudeArray.add(databaseHelper.locationDetail(Integer.parseInt(locations.get(j))).get("latitude"));
-                mLongitudeArray.add(databaseHelper.locationDetail(Integer.parseInt(locations.get(j))).get("longitude"));
-                details.add(listString);
 
 
-            }
-        }
-        }*/
+
 
         refresh(finalStr);
 
+        finalStr = intentStr;
+        dateText.setText(finalStr);
 
         Stetho.initialize(Stetho.newInitializerBuilder(this)
                 .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
                 .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this))
                 .build());
 
-        //arrayList.clear();
-        //latitudeArray.clear();
-        //longitudeArray.clear();
-        /*locationList.clear();
-
-        if(details!=null){
-
-            arrayList.clear();
-            latitudeArray.clear();
-            longitudeArray.clear();
-
-            arrayList.addAll(details);
-            arrayAdapter.notifyDataSetChanged();
-
-            latitudeArray.addAll(mLatitudeArray);
-            longitudeArray.addAll(mLongitudeArray);
-
-            details.clear();
-            mLatitudeArray.clear();
-            mLongitudeArray.clear();
-            //arrayList.clear();
-        }*/
 
 
         if(flag){
@@ -204,13 +150,28 @@ public class MainActivity extends AppCompatActivity {
                             String address = "";
                             try {
                                 List<Address> listAddresses = geocoder.getFromLocation(Double.parseDouble(latitude), Double.parseDouble(longitude), 1);
-                                if (listAddresses != null && listAddresses.size() > 0) {
-                                    if (listAddresses.get(0).getThoroughfare() != null) {
-                                        if (listAddresses.get(0).getSubThoroughfare() != null) {
-                                            address += listAddresses.get(0).getSubThoroughfare() + " ";
 
+                                //Log.i("ListAddress", listAddresses.get(0).toString());
+
+
+                                Log.i("ListAddress", listAddresses.get(0).getAddressLine(0).split(",")[0]);
+
+                                if (listAddresses != null && listAddresses.size() > 0) {
+                                    if (listAddresses.get(0).getAddressLine(0)!=null) {
+
+                                        if((listAddresses.get(0).getAddressLine(0).split(",")[0])!=null)
+                                            address +=  listAddresses.get(0).getAddressLine(0).split(",")[0] + ", ";
+
+                                        if(listAddresses.get(0).getSubAdminArea()!=null)
+                                            address += listAddresses.get(0).getSubAdminArea() + ", ";
+
+                                        if(listAddresses.get(0).getAdminArea()!=null)
+                                            address += listAddresses.get(0).getAdminArea() + ". ";
                                         }
-                                        address += listAddresses.get(0).getThoroughfare();
+
+                                    Log.i("ListAddress", address);
+
+                                    //address += listAddresses.get(0).getThoroughfare();
                                         SimpleDateFormat dateSdf = new SimpleDateFormat("dd-MM-yyyy");
                                         SimpleDateFormat timeSdf = new SimpleDateFormat("HH:mm:ss");
                                         timeStr = timeSdf.format(new Date());
@@ -219,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
                                         address += " - " + timeStr + " - " + dateStr;
                                     }
 
-                                }
+
 
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -235,12 +196,16 @@ public class MainActivity extends AppCompatActivity {
 
                             }
 
+                            Log.i("FinalSTR", finalStr + " " + dateStr);
+
                             if(finalStr.equals(dateStr)){
 
+
                                 arrayList.add(address);
-                                arrayAdapter.notifyDataSetChanged();
                                 latitudeArray.add(latitude);
                                 longitudeArray.add(longitude);
+                                arrayAdapter.notifyDataSetChanged();
+
                             }
 
                             databaseHelper.addLocation(address,longitude,latitude,timeStr,dateStr);
@@ -266,6 +231,7 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> details = new ArrayList<>();
 
         intentStr=str;
+        finalStr=str;
 
         if(intentStr==null){
             Log.i("IntentStr", "NULL");
@@ -293,6 +259,8 @@ public class MainActivity extends AppCompatActivity {
                     String listString = databaseHelper.locationDetail(Integer.parseInt(locations.get(j))).get("location_title");
                     mLatitudeArray.add(databaseHelper.locationDetail(Integer.parseInt(locations.get(j))).get("latitude"));
                     mLongitudeArray.add(databaseHelper.locationDetail(Integer.parseInt(locations.get(j))).get("longitude"));
+
+                    if(!details.contains(listString))
                     details.add(listString);
 
 
@@ -368,6 +336,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String str = datesStr.get(position);
+
+                dateText.setText(str);
 
                 refresh(str);
 

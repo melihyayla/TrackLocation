@@ -16,7 +16,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-
+    String address = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,11 +45,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         double mLatitude = Double.parseDouble(intent.getStringExtra("Latitude"));
         double mLongitude = Double.parseDouble(intent.getStringExtra("Longitude"));
+        address += intent.getStringExtra("Address");
 
         Location placeLocation = new Location(LocationManager.GPS_PROVIDER);
         placeLocation.setLatitude(mLatitude);
         placeLocation.setLongitude(mLongitude);
-        centerMapOnLocation(placeLocation, "Deneme");
+        centerMapOnLocation(placeLocation, address);
 
     }
 
@@ -61,6 +62,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if(title!= "Your Location"){
             mMap.addMarker(new MarkerOptions().position(userLocation).title(title));
         }
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation,14));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation,18));
     }
 }
